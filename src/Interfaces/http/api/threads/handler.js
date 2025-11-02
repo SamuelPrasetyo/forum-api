@@ -1,6 +1,6 @@
 const AddThreadUseCase = require('../../../../Applications/use_case/AddThreadUseCase');
 const AuthenticationTokenManager = require('../../../../Applications/security/AuthenticationTokenManager');
-const InvariantError = require('../../../../Commons/exceptions/InvariantError');
+const AuthenticationError = require('../../../../Commons/exceptions/AuthenticationError');
 
 class ThreadsHandler {
   constructor(container) {
@@ -14,7 +14,7 @@ class ThreadsHandler {
     const { authorization } = request.headers;
     
     if (!authorization || !authorization.startsWith('Bearer ')) {
-      throw new InvariantError('Missing authentication');
+      throw new AuthenticationError('Missing authentication');
     }
 
     const token = authorization.substring(7); // Remove 'Bearer ' prefix
