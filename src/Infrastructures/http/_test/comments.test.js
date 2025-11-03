@@ -45,6 +45,21 @@ describe('/threads/{threadId}/comments endpoint', () => {
     expect(json.data.addedComment.owner).toBeDefined();
   });
 
+  it('should response 401 when access token is missing', async () => {
+    const server = await createServer(container);
+    await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-DUMMY' });
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/threads/thread-123/comments',
+      payload: { content: 'a comment' },
+    });
+
+    const json = JSON.parse(response.payload);
+    expect(response.statusCode).toEqual(401);
+    expect(json.status).toEqual('fail');
+  });
+
   it('should response 404 when thread not found', async () => {
     const server = await createServer(container);
     await server.inject({ method: 'POST', url: '/users', payload: { username: 'dicoding', password: 'secret', fullname: 'Dicoding Indonesia' } });

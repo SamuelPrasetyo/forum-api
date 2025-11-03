@@ -1,4 +1,5 @@
 const AddCommentUseCase = require('../../../../Applications/use_case/AddCommentUseCase');
+const DeleteCommentUseCase = require('../../../../Applications/use_case/DeleteCommentUseCase');
 const AuthenticationTokenManager = require('../../../../Applications/security/AuthenticationTokenManager');
 const AuthenticationError = require('../../../../Commons/exceptions/AuthenticationError');
 
@@ -7,6 +8,7 @@ class ThreadCommentsHandler {
     this._container = container;
 
     this.postCommentHandler = this.postCommentHandler.bind(this);
+    this.deleteCommentHandler = this.deleteCommentHandler.bind(this);
   }
 
   async postCommentHandler(request, h) {
@@ -36,6 +38,24 @@ class ThreadCommentsHandler {
     return response;
   }
 }
+
+ThreadCommentsHandler.prototype.deleteCommentHandler = async function deleteCommentHandler(request) {
+  const { authorization } = request.headers;
+  if (!authorization || !authorization.startsWith('Bearer ')) {
+    throw new AuthenticationError('Missing authentication');
+  }
+
+  const token = authorization.substring(7);
+  const authenticationTokenManager = this._container.getInstance(AuthenticationTokenManager.name);
+  await authenticationTokenManager.verifyAccessToken(token);
+  const { id: owner } = await authenticationTokenManager.decodePayload(token);
+
+  const { threadId, commentId } = request.params;
+  const useCase = this._container.getInstance(DeleteCommentUseCase.name);
+  await useCase.execute({ threadId, commentId, owner });
+
+  return { status: 'success' };
+};
 
 module.exports = ThreadCommentsHandler;
 
