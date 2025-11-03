@@ -161,7 +161,7 @@ describe('/threads endpoint', () => {
       expect(responseJson.message).toEqual('tidak dapat membuat thread baru karena tipe data tidak sesuai');
     });
 
-    it('should response 400 if access token is missing', async () => {
+    it('should response 401 if access token is missing', async () => {
       // Arrange
       const requestPayload = {
         title: 'a thread',
@@ -178,7 +178,7 @@ describe('/threads endpoint', () => {
 
       // Assert
       const responseJson = JSON.parse(response.payload);
-      expect(response.statusCode).toEqual(400);
+      expect(response.statusCode).toEqual(401);
       expect(responseJson.status).toEqual('fail');
       expect(responseJson.message).toBeDefined();
     });
