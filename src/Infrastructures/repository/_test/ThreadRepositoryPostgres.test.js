@@ -21,6 +21,7 @@ describe('ThreadRepositoryPostgres', () => {
     );
 
     // Action
+    await pool.query({ text: 'DELETE FROM threads WHERE id=$1', values: ['thread-123'] });
     const addedThread = await threadRepository.addThread(payload);
 
     // Assert

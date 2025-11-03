@@ -1,46 +1,42 @@
-const AddThreadUseCase = require('../../../../Applications/use_case/AddThreadUseCase');
+const AddCommentUseCase = require('../../../../Applications/use_case/AddCommentUseCase');
 const AuthenticationTokenManager = require('../../../../Applications/security/AuthenticationTokenManager');
 const AuthenticationError = require('../../../../Commons/exceptions/AuthenticationError');
 
-class ThreadsHandler {
+class ThreadCommentsHandler {
   constructor(container) {
     this._container = container;
 
-    this.postThreadHandler = this.postThreadHandler.bind(this);
+    this.postCommentHandler = this.postCommentHandler.bind(this);
   }
 
-  async postThreadHandler(request, h) {
-    // Extract access token from Authorization header
+  async postCommentHandler(request, h) {
     const { authorization } = request.headers;
-    
     if (!authorization || !authorization.startsWith('Bearer ')) {
       throw new AuthenticationError('Missing authentication');
     }
 
-    const token = authorization.substring(7); // Remove 'Bearer ' prefix
+    const token = authorization.substring(7);
     const authenticationTokenManager = this._container.getInstance(AuthenticationTokenManager.name);
-    
-    // Verify and decode token
     await authenticationTokenManager.verifyAccessToken(token);
     const { id: owner } = await authenticationTokenManager.decodePayload(token);
 
-    // Execute use case
-    const addThreadUseCase = this._container.getInstance(AddThreadUseCase.name);
-    const addedThread = await addThreadUseCase.execute({
+    const { threadId } = request.params;
+    const addCommentUseCase = this._container.getInstance(AddCommentUseCase.name);
+    const addedComment = await addCommentUseCase.execute({
       ...request.payload,
+      threadId,
       owner,
     });
 
     const response = h.response({
       status: 'success',
-      data: {
-        addedThread,
-      },
+      data: { addedComment },
     });
     response.code(201);
     return response;
   }
-
 }
 
-module.exports = ThreadsHandler;
+module.exports = ThreadCommentsHandler;
+
+
