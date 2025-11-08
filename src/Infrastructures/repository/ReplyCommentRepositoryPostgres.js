@@ -1,4 +1,6 @@
 const ReplyCommentsRepository = require('../../Domains/reply_comments/ReplyCommentsRepository');
+const NotFoundError = require('../../Commons/exceptions/NotFoundError');
+const AuthorizationError = require('../../Commons/exceptions/AuthorizationError');
 
 class ReplyCommentsRepositoryPostgres extends ReplyCommentsRepository {
   constructor(pool, idGenerator) {
@@ -16,7 +18,56 @@ class ReplyCommentsRepositoryPostgres extends ReplyCommentsRepository {
 
     const result = await this._pool.query(query);
     return result.rows[0];
-  }  
+  }
+
+  async verifyReplyExists(replyId) {
+    const query = {
+      text: 'SELECT id FROM reply_comments WHERE id = $1',
+      values: [replyId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rowCount) {
+      throw new NotFoundError('balasan tidak ditemukan');
+    }
+  }
+
+  async verifyReplyOwner(replyId, owner) {
+    const query = {
+      text: 'SELECT owner FROM reply_comments WHERE id = $1',
+      values: [replyId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (result.rows[0].owner !== owner) {
+      throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
+    }
+  }
+
+  async deleteReplyComment(replyId) {
+    const query = {
+      text: 'UPDATE reply_comments SET is_delete = TRUE WHERE id = $1',
+      values: [replyId],
+    };
+
+    await this._pool.query(query);
+  }
+
+  async getRepliesByCommentId(commentId) {
+    const query = {
+      text: `SELECT rc.id, rc.content, rc.date, rc.is_delete, u.username
+             FROM reply_comments rc
+             INNER JOIN users u ON rc.owner = u.id
+             WHERE rc.comment_id = $1
+             ORDER BY rc.date ASC`,
+      values: [commentId],
+    };
+
+    const result = await this._pool.query(query);
+    return result.rows;
+  }
 }
 
 module.exports = ReplyCommentsRepositoryPostgres;

@@ -114,4 +114,107 @@ describe('/threads/{threadId}/comments/{commentId}/replies', () => {
     expect(json.status).toEqual('fail');
     expect(json.message).toBeDefined();
   });
+
+  describe('DELETE /threads/{threadId}/comments/{commentId}/replies/{replyId}', () => {
+    it('should delete reply and return 200', async () => {
+      const server = await createServer(container);
+
+      // Register users
+      await server.inject({ method: 'POST', url: '/users', payload: { username: 'owner', password: 'secret', fullname: 'Owner' } });
+      const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'owner', password: 'secret' } });
+      const { data: { accessToken } } = JSON.parse(login.payload);
+
+      // Get user id
+      const ownerIdRes = await pool.query({ text: 'SELECT id FROM users WHERE username=$1', values: ['owner'] });
+      const ownerId = ownerIdRes.rows[0].id;
+
+      // Add thread, comment, and reply
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: ownerId });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: ownerId });
+      await ReplyCommentsTableTestHelper.addReplyComment({ id: 'reply-123', commentId: 'comment-123', owner: ownerId });
+
+      const response = await server.inject({
+        method: 'DELETE',
+        url: '/threads/thread-123/comments/comment-123/replies/reply-123',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      const json = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(200);
+      expect(json.status).toEqual('success');
+
+      // Verify soft delete
+      const replies = await ReplyCommentsTableTestHelper.findReplyCommentsById('reply-123');
+      expect(replies[0].is_delete).toEqual(true);
+    });
+
+    it('should response 403 when user is not owner', async () => {
+      const server = await createServer(container);
+
+      // Register users
+      await server.inject({ method: 'POST', url: '/users', payload: { username: 'owner', password: 'secret', fullname: 'Owner' } });
+      await server.inject({ method: 'POST', url: '/users', payload: { username: 'other', password: 'secret', fullname: 'Other' } });
+      const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'other', password: 'secret' } });
+      const { data: { accessToken } } = JSON.parse(login.payload);
+
+      const ownerIdRes = await pool.query({ text: 'SELECT id FROM users WHERE username=$1', values: ['owner'] });
+      const ownerId = ownerIdRes.rows[0].id;
+
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: ownerId });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: ownerId });
+      await ReplyCommentsTableTestHelper.addReplyComment({ id: 'reply-123', commentId: 'comment-123', owner: ownerId });
+
+      const response = await server.inject({
+        method: 'DELETE',
+        url: '/threads/thread-123/comments/comment-123/replies/reply-123',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      const json = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(403);
+      expect(json.status).toEqual('fail');
+      expect(json.message).toBeDefined();
+    });
+
+    it('should response 404 when reply not found', async () => {
+      const server = await createServer(container);
+
+      await server.inject({ method: 'POST', url: '/users', payload: { username: 'owner', password: 'secret', fullname: 'Owner' } });
+      const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'owner', password: 'secret' } });
+      const { data: { accessToken } } = JSON.parse(login.payload);
+
+      const ownerIdRes = await pool.query({ text: 'SELECT id FROM users WHERE username=$1', values: ['owner'] });
+      const ownerId = ownerIdRes.rows[0].id;
+
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: ownerId });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: ownerId });
+
+      const response = await server.inject({
+        method: 'DELETE',
+        url: '/threads/thread-123/comments/comment-123/replies/reply-xxx',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      const json = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(404);
+      expect(json.status).toEqual('fail');
+      expect(json.message).toBeDefined();
+    });
+
+    it('should response 401 when access token is missing', async () => {
+      const server = await createServer(container);
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-DUMMY' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: 'user-DUMMY' });
+      await ReplyCommentsTableTestHelper.addReplyComment({ id: 'reply-123', commentId: 'comment-123', owner: 'user-DUMMY' });
+
+      const response = await server.inject({
+        method: 'DELETE',
+        url: '/threads/thread-123/comments/comment-123/replies/reply-123',
+      });
+
+      const json = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(401);
+      expect(json.status).toEqual('fail');
+    });
+  });
 });

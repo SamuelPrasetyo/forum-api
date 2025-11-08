@@ -1,7 +1,7 @@
 const GetThreadDetailUseCase = require('../GetThreadDetailUseCase');
 
 describe('GetThreadDetailUseCase', () => {
-  it('should orchestrate getting thread detail with comments', async () => {
+  it('should orchestrate getting thread detail with comments and replies', async () => {
     const threadId = 'thread-123';
     const mockThreadRepository = {
       getThreadById: jest.fn().mockResolvedValue({
@@ -18,20 +18,47 @@ describe('GetThreadDetailUseCase', () => {
         { id: 'comment-2', username: 'doe', date: new Date('2021-08-08T07:26:21.338Z'), content: 'bye', is_delete: true },
       ]),
     };
+    const mockReplyCommentRepository = {
+      getRepliesByCommentId: jest.fn()
+        .mockResolvedValueOnce([
+          { id: 'reply-1', content: 'reply 1', date: new Date('2021-08-08T07:59:48.766Z'), username: 'johndoe', is_delete: false },
+          { id: 'reply-2', content: 'reply 2', date: new Date('2021-08-08T08:07:01.522Z'), username: 'dicoding', is_delete: true },
+        ])
+        .mockResolvedValueOnce([]),
+    };
 
-    const useCase = new GetThreadDetailUseCase({ threadRepository: mockThreadRepository, commentRepository: mockCommentRepository });
+    const useCase = new GetThreadDetailUseCase({ 
+      threadRepository: mockThreadRepository, 
+      commentRepository: mockCommentRepository,
+      replyCommentRepository: mockReplyCommentRepository,
+    });
     const result = await useCase.execute(threadId);
 
     expect(mockThreadRepository.getThreadById).toBeCalledWith(threadId);
     expect(mockCommentRepository.getCommentsByThreadId).toBeCalledWith(threadId);
+    expect(mockReplyCommentRepository.getRepliesByCommentId).toBeCalledWith('comment-1');
+    expect(mockReplyCommentRepository.getRepliesByCommentId).toBeCalledWith('comment-2');
     expect(result).toMatchObject({
       id: threadId,
       title: 'a title',
       body: 'a body',
       username: 'dicoding',
       comments: [
-        { id: 'comment-1', username: 'john', content: 'hi' },
-        { id: 'comment-2', username: 'doe', content: '**komentar telah dihapus**' },
+        { 
+          id: 'comment-1', 
+          username: 'john', 
+          content: 'hi',
+          replies: [
+            { id: 'reply-1', content: 'reply 1', username: 'johndoe' },
+            { id: 'reply-2', content: '**balasan telah dihapus**', username: 'dicoding' },
+          ],
+        },
+        { 
+          id: 'comment-2', 
+          username: 'doe', 
+          content: '**komentar telah dihapus**',
+          replies: [],
+        },
       ],
     });
   });
