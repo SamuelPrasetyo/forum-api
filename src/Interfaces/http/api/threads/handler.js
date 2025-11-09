@@ -1,3 +1,4 @@
+const autoBind = require('../../../../Commons/utils/autoBind');
 const AddThreadUseCase = require('../../../../Applications/use_case/AddThreadUseCase');
 const GetThreadDetailUseCase = require('../../../../Applications/use_case/GetThreadDetailUseCase');
 
@@ -5,8 +6,7 @@ class ThreadsHandler {
   constructor(container) {
     this._container = container;
 
-    this.postThreadHandler = this.postThreadHandler.bind(this);
-    this.getThreadDetailHandler = this.getThreadDetailHandler.bind(this);
+    autoBind(this);
   }
 
   async postThreadHandler(request, h) {

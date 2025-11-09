@@ -22,7 +22,7 @@ class ReplyCommentsRepositoryPostgres extends ReplyCommentsRepository {
 
   async verifyReplyExists(replyId) {
     const query = {
-      text: 'SELECT id FROM reply_comments WHERE id = $1',
+      text: 'SELECT id, owner FROM reply_comments WHERE id = $1',
       values: [replyId],
     };
 
@@ -31,17 +31,14 @@ class ReplyCommentsRepositoryPostgres extends ReplyCommentsRepository {
     if (!result.rowCount) {
       throw new NotFoundError('balasan tidak ditemukan');
     }
+
+    return result.rows[0];
   }
 
   async verifyReplyOwner(replyId, owner) {
-    const query = {
-      text: 'SELECT owner FROM reply_comments WHERE id = $1',
-      values: [replyId],
-    };
+    const reply = await this.verifyReplyExists(replyId);
 
-    const result = await this._pool.query(query);
-
-    if (result.rows[0].owner !== owner) {
+    if (reply.owner !== owner) {
       throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
     }
   }

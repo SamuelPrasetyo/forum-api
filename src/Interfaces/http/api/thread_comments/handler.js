@@ -1,3 +1,4 @@
+const autoBind = require('../../../../Commons/utils/autoBind');
 const AddCommentUseCase = require('../../../../Applications/use_case/AddCommentUseCase');
 const DeleteCommentUseCase = require('../../../../Applications/use_case/DeleteCommentUseCase');
 
@@ -5,8 +6,7 @@ class ThreadCommentsHandler {
   constructor(container) {
     this._container = container;
 
-    this.postCommentHandler = this.postCommentHandler.bind(this);
-    this.deleteCommentHandler = this.deleteCommentHandler.bind(this);
+    autoBind(this);
   }
 
   async postCommentHandler(request, h) {

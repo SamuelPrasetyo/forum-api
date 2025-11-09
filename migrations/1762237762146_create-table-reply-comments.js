@@ -13,9 +13,8 @@ exports.up = (pgm) => {
     owner: {
       type: 'VARCHAR(50)',
       notNull: true,
-      // Jika kamu punya tabel 'users', aktifkan baris berikut:
-      // references: 'users',
-      // onDelete: 'cascade',
+      references: 'users',
+      onDelete: 'cascade',
     },
     comment_id: {
       type: 'VARCHAR(50)',
