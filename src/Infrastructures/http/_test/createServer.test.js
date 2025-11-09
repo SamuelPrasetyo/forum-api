@@ -1,9 +1,13 @@
 const createServer = require('../createServer');
+const AuthenticationTokenManager = require('../../../Applications/security/AuthenticationTokenManager');
 
 describe('HTTP server', () => {
   it('should response 404 when request unregistered route', async () => {
     // Arrange
-    const server = await createServer({});
+    const mockContainer = {
+      getInstance: jest.fn().mockReturnValue(new AuthenticationTokenManager()),
+    };
+    const server = await createServer(mockContainer);
 
     // Action
     const response = await server.inject({
@@ -22,7 +26,10 @@ describe('HTTP server', () => {
       fullname: 'Dicoding Indonesia',
       password: 'super_secret',
     };
-    const server = await createServer({}); // fake injection
+    const mockContainer = {
+      getInstance: jest.fn().mockReturnValue(new AuthenticationTokenManager()),
+    };
+    const server = await createServer(mockContainer); // fake injection
 
     // Action
     const response = await server.inject({

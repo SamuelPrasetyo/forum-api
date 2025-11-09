@@ -6,12 +6,21 @@ const authentications = require('../../Interfaces/http/api/authentications');
 const threads = require('../../Interfaces/http/api/threads');
 const threadComments = require('../../Interfaces/http/api/thread_comments');
 const replyComments = require('../../Interfaces/http/api/reply_thread_comments');
+const JwtAuthStrategy = require('../security/JwtAuthStrategy');
+const AuthenticationTokenManager = require('../../Applications/security/AuthenticationTokenManager');
 
 const createServer = async (container) => {
   const server = Hapi.server({
     host: process.env.HOST,
     port: process.env.PORT,
   });
+
+  // Register JWT authentication strategy
+  const authenticationTokenManager = container.getInstance(AuthenticationTokenManager.name);
+  const jwtAuthStrategy = new JwtAuthStrategy(authenticationTokenManager);
+  
+  server.auth.scheme('jwt', () => jwtAuthStrategy.scheme());
+  server.auth.strategy('forum_jwt', 'jwt');
 
   await server.register([
     {
