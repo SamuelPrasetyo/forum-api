@@ -12,7 +12,7 @@ class ReplyThreadCommentsHandler {
   async postReplyCommentHandler(request, h) {
     const { id: owner } = request.auth.credentials;
     const { threadId, commentId } = request.params;
-    
+
     const addReplyCommentUseCase = this._container.getInstance(AddReplyCommentUseCase.name);
     const addedReply = await addReplyCommentUseCase.execute({
       ...request.payload,
@@ -32,7 +32,7 @@ class ReplyThreadCommentsHandler {
   async deleteReplyCommentHandler(request, h) {
     const { id: owner } = request.auth.credentials;
     const { threadId, commentId, replyId } = request.params;
-    
+
     const deleteReplyCommentUseCase = this._container.getInstance(DeleteReplyCommentUseCase.name);
     await deleteReplyCommentUseCase.execute({
       replyId,

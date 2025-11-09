@@ -1,4 +1,5 @@
 const CommentRepository = require('../../Domains/comments/CommentRepository');
+const AuthorizationError = require('../../Commons/exceptions/AuthorizationError');
 
 class CommentRepositoryPostgres extends CommentRepository {
   constructor(pool, idGenerator) {
@@ -52,7 +53,6 @@ class CommentRepositoryPostgres extends CommentRepository {
       throw new Error('COMMENT.NOT_FOUND');
     }
     if (result.rows[0].owner !== ownerId) {
-      const AuthorizationError = require('../../Commons/exceptions/AuthorizationError');
       throw new AuthorizationError('anda tidak berhak mengakses resource ini');
     }
   }
@@ -67,5 +67,3 @@ class CommentRepositoryPostgres extends CommentRepository {
 }
 
 module.exports = CommentRepositoryPostgres;
-
-

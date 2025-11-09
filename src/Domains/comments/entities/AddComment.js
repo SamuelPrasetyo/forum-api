@@ -21,5 +21,3 @@ class AddComment {
 }
 
 module.exports = AddComment;
-
-

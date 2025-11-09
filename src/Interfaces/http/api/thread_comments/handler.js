@@ -12,7 +12,7 @@ class ThreadCommentsHandler {
   async postCommentHandler(request, h) {
     const { id: owner } = request.auth.credentials;
     const { threadId } = request.params;
-    
+
     const addCommentUseCase = this._container.getInstance(AddCommentUseCase.name);
     const addedComment = await addCommentUseCase.execute({
       ...request.payload,
@@ -31,7 +31,7 @@ class ThreadCommentsHandler {
   async deleteCommentHandler(request) {
     const { id: owner } = request.auth.credentials;
     const { threadId, commentId } = request.params;
-    
+
     const useCase = this._container.getInstance(DeleteCommentUseCase.name);
     await useCase.execute({ threadId, commentId, owner });
 
@@ -40,5 +40,3 @@ class ThreadCommentsHandler {
 }
 
 module.exports = ThreadCommentsHandler;
-
-

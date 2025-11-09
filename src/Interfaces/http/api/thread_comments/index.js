@@ -8,5 +8,3 @@ module.exports = {
     server.route(routes(handler));
   },
 };
-
-

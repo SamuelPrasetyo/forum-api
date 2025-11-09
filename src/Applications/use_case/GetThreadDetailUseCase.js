@@ -8,7 +8,7 @@ class GetThreadDetailUseCase {
   async execute(threadId) {
     const thread = await this._threadRepository.getThreadById(threadId);
     const comments = await this._commentRepository.getCommentsByThreadId(threadId);
-    
+
     const mappedComments = await Promise.all(comments.map(async (c) => {
       const replies = await this._replyCommentRepository.getRepliesByCommentId(c.id);
       const mappedReplies = replies.map((r) => ({
@@ -39,5 +39,3 @@ class GetThreadDetailUseCase {
 }
 
 module.exports = GetThreadDetailUseCase;
-
-

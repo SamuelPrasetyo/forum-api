@@ -2,7 +2,9 @@ class AddReplyComment {
   constructor(payload) {
     this._verifyPayload(payload);
 
-    const { content, owner, threadId, commentId } = payload;
+    const {
+      content, owner, threadId, commentId,
+    } = payload;
 
     this.content = content;
     this.owner = owner;
@@ -10,7 +12,9 @@ class AddReplyComment {
     this.commentId = commentId;
   }
 
-  _verifyPayload({ content, owner, threadId, commentId }) {
+  _verifyPayload({
+    content, owner, threadId, commentId,
+  }) {
     if (!content || !owner || !threadId || !commentId) {
       throw new Error('ADD_REPLY_COMMENT.NOT_CONTAIN_NEEDED_PROPERTY');
     }

@@ -39,7 +39,6 @@ class ThreadsHandler {
       data: { thread },
     };
   }
-
 }
 
 module.exports = ThreadsHandler;

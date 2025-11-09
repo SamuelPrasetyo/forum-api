@@ -5,12 +5,12 @@ class JwtAuthStrategy {
     this._authenticationTokenManager = authenticationTokenManager;
   }
 
-  async validate(artifacts, request, h) {
+  async validate(artifacts, _request, _h) {
     try {
       const { token } = artifacts;
       await this._authenticationTokenManager.verifyAccessToken(token);
       const { id } = await this._authenticationTokenManager.decodePayload(token);
-      
+
       return {
         isValid: true,
         credentials: {

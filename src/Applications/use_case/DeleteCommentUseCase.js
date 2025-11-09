@@ -1,3 +1,5 @@
+const NotFoundError = require('../../Commons/exceptions/NotFoundError');
+
 class DeleteCommentUseCase {
   constructor({ threadRepository, commentRepository }) {
     this._threadRepository = threadRepository;
@@ -8,7 +10,6 @@ class DeleteCommentUseCase {
     await this._threadRepository.verifyAvailableThread(threadId);
     const comment = await this._commentRepository.verifyCommentExists(commentId);
     if (comment.thread_id !== threadId) {
-      const NotFoundError = require('../../Commons/exceptions/NotFoundError');
       throw new NotFoundError('komentar tidak ditemukan pada thread');
     }
     await this._commentRepository.verifyCommentOwner(commentId, owner);
@@ -17,5 +18,3 @@ class DeleteCommentUseCase {
 }
 
 module.exports = DeleteCommentUseCase;
-
-

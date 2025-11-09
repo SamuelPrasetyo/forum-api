@@ -18,7 +18,7 @@ const createServer = async (container) => {
   // Register JWT authentication strategy
   const authenticationTokenManager = container.getInstance(AuthenticationTokenManager.name);
   const jwtAuthStrategy = new JwtAuthStrategy(authenticationTokenManager);
-  
+
   server.auth.scheme('jwt', () => jwtAuthStrategy.scheme());
   server.auth.strategy('forum_jwt', 'jwt');
 
