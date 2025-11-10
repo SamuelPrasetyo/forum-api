@@ -47,7 +47,13 @@ describe('/threads/{threadId}/comments endpoint', () => {
 
   it('should response 401 when access token is missing', async () => {
     const server = await createServer(container);
-    await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-DUMMY' });
+
+    // Create user for foreign key constraint
+    await server.inject({ method: 'POST', url: '/users', payload: { username: 'testuser', password: 'secret', fullname: 'Test User' } });
+    const userIdRes = await pool.query({ text: 'SELECT id FROM users WHERE username=$1', values: ['testuser'] });
+    const userId = userIdRes.rows[0].id;
+
+    await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: userId });
 
     const response = await server.inject({
       method: 'POST',
@@ -84,7 +90,12 @@ describe('/threads/{threadId}/comments endpoint', () => {
     await server.inject({ method: 'POST', url: '/users', payload: { username: 'dicoding', password: 'secret', fullname: 'Dicoding Indonesia' } });
     const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'dicoding', password: 'secret' } });
     const { data: { accessToken } } = JSON.parse(login.payload);
-    await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-DUMMY' });
+
+    // Get actual user ID
+    const userIdRes = await pool.query({ text: 'SELECT id FROM users WHERE username=$1', values: ['dicoding'] });
+    const userId = userIdRes.rows[0].id;
+
+    await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: userId });
 
     const response = await server.inject({
       method: 'POST',
