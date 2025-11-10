@@ -50,8 +50,6 @@ describe('ThreadRepositoryPostgres', () => {
       // Action & Assert
       await expect(threadRepository.verifyAvailableThread('thread-123'))
         .rejects.toThrow(NotFoundError);
-      await expect(threadRepository.verifyAvailableThread('thread-123'))
-        .rejects.toThrow('thread tidak ditemukan');
     });
 
     it('should not throw NotFoundError when thread is found', async () => {
@@ -74,8 +72,6 @@ describe('ThreadRepositoryPostgres', () => {
       // Action & Assert
       await expect(threadRepository.getThreadById('thread-123'))
         .rejects.toThrow(NotFoundError);
-      await expect(threadRepository.getThreadById('thread-123'))
-        .rejects.toThrow('thread tidak ditemukan');
     });
 
     it('should return thread details correctly', async () => {

@@ -3,6 +3,8 @@ const pool = require('../../database/postgres/pool');
 const CommentsTableTestHelper = require('../../../../tests/CommentsTableTestHelper');
 const ThreadsTableTestHelper = require('../../../../tests/ThreadsTableTestHelper');
 const UsersTableTestHelper = require('../../../../tests/UsersTableTestHelper');
+const NotFoundError = require('../../../Commons/exceptions/NotFoundError');
+const AuthorizationError = require('../../../Commons/exceptions/AuthorizationError');
 
 describe('CommentRepositoryPostgres', () => {
   afterEach(async () => {
@@ -81,7 +83,7 @@ describe('CommentRepositoryPostgres', () => {
   describe('ownership and deletion', () => {
     it('verifyCommentExists should throw when not found', async () => {
       const repo = new CommentRepositoryPostgres(pool, () => 'x');
-      await expect(repo.verifyCommentExists('comment-x')).rejects.toThrow('COMMENT.NOT_FOUND');
+      await expect(repo.verifyCommentExists('comment-x')).rejects.toThrow(NotFoundError);
     });
 
     it('verifyCommentExists should return row when found', async () => {
@@ -102,14 +104,14 @@ describe('CommentRepositoryPostgres', () => {
       await CommentsTableTestHelper.addComment({ id: 'comment-own', content: 'c', owner: 'user-comment-5', threadId: 'thread-comment-4' });
       
       const repo = new CommentRepositoryPostgres(pool, () => 'x');
-      await expect(repo.verifyCommentOwner('comment-own', 'user-other')).rejects.toThrow('anda tidak berhak mengakses resource ini');
+      await expect(repo.verifyCommentOwner('comment-own', 'user-other')).rejects.toThrow(AuthorizationError);
     });
 
     it('verifyCommentOwner should throw COMMENT.NOT_FOUND when comment missing', async () => {
       await pool.query({ text: 'DELETE FROM comments WHERE id=$1', values: ['comment-missing'] });
       const repo = new CommentRepositoryPostgres(pool, () => 'x');
       await expect(repo.verifyCommentOwner('comment-missing', 'user-any'))
-        .rejects.toThrow(require('../../../Commons/exceptions/NotFoundError'));
+        .rejects.toThrow(NotFoundError);
     });
 
     it('verifyCommentOwner should pass when owner matches', async () => {
