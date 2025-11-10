@@ -49,7 +49,9 @@ describe('ThreadRepositoryPostgres', () => {
 
       // Action & Assert
       await expect(threadRepository.verifyAvailableThread('thread-123'))
-        .rejects.toThrowError(NotFoundError);
+        .rejects.toThrow(NotFoundError);
+      await expect(threadRepository.verifyAvailableThread('thread-123'))
+        .rejects.toThrow('thread tidak ditemukan');
     });
 
     it('should not throw NotFoundError when thread is found', async () => {
@@ -71,11 +73,14 @@ describe('ThreadRepositoryPostgres', () => {
 
       // Action & Assert
       await expect(threadRepository.getThreadById('thread-123'))
-        .rejects.toThrowError(NotFoundError);
+        .rejects.toThrow(NotFoundError);
+      await expect(threadRepository.getThreadById('thread-123'))
+        .rejects.toThrow('thread tidak ditemukan');
     });
 
     it('should return thread details correctly', async () => {
       // Arrange
+      const fixedDate = new Date('2021-08-08T07:19:09.775Z');
       await UsersTableTestHelper.addUser({
         id: 'user-123',
         username: 'dicoding',
@@ -85,6 +90,7 @@ describe('ThreadRepositoryPostgres', () => {
         title: 'sebuah thread',
         body: 'isi thread',
         owner: 'user-123',
+        date: fixedDate,
       });
 
       const threadRepository = new ThreadRepositoryPostgres(pool, {});
@@ -97,7 +103,7 @@ describe('ThreadRepositoryPostgres', () => {
       expect(thread.title).toEqual('sebuah thread');
       expect(thread.body).toEqual('isi thread');
       expect(thread.username).toEqual('dicoding');
-      expect(thread.date).toBeDefined();
+      expect(thread.date).toEqual(fixedDate);
     });
   });
 });

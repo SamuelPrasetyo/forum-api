@@ -1,5 +1,6 @@
 const CommentRepository = require('../../Domains/comments/CommentRepository');
 const AuthorizationError = require('../../Commons/exceptions/AuthorizationError');
+const NotFoundError = require('../../Commons/exceptions/NotFoundError');
 
 class CommentRepositoryPostgres extends CommentRepository {
   constructor(pool, idGenerator) {
@@ -38,7 +39,7 @@ class CommentRepositoryPostgres extends CommentRepository {
     };
     const result = await this._pool.query(query);
     if (!result.rowCount) {
-      throw new Error('COMMENT.NOT_FOUND');
+      throw new NotFoundError('COMMENT.NOT_FOUND');
     }
     return result.rows[0];
   }

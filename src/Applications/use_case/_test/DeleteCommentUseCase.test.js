@@ -1,4 +1,6 @@
 const DeleteCommentUseCase = require('../DeleteCommentUseCase');
+const ThreadRepository = require('../../../Domains/threads/ThreadRepository');
+const CommentRepository = require('../../../Domains/comments/CommentRepository');
 
 describe('DeleteCommentUseCase', () => {
   it('should orchestrate the delete comment action correctly', async () => {
@@ -6,12 +8,13 @@ describe('DeleteCommentUseCase', () => {
     const commentId = 'comment-1';
     const owner = 'user-1';
 
-    const mockThreadRepository = { verifyAvailableThread: jest.fn().mockResolvedValue() };
-    const mockCommentRepository = {
-      verifyCommentExists: jest.fn().mockResolvedValue({ id: commentId, thread_id: threadId, owner }),
-      verifyCommentOwner: jest.fn().mockResolvedValue(),
-      deleteComment: jest.fn().mockResolvedValue(),
-    };
+    const mockThreadRepository = new ThreadRepository();
+    mockThreadRepository.verifyAvailableThread = jest.fn().mockResolvedValue();
+
+    const mockCommentRepository = new CommentRepository();
+    mockCommentRepository.verifyCommentExists = jest.fn().mockResolvedValue({ id: commentId, thread_id: threadId, owner });
+    mockCommentRepository.verifyCommentOwner = jest.fn().mockResolvedValue();
+    mockCommentRepository.deleteComment = jest.fn().mockResolvedValue();
 
     const useCase = new DeleteCommentUseCase({ threadRepository: mockThreadRepository, commentRepository: mockCommentRepository });
     await useCase.execute({ threadId, commentId, owner });
@@ -27,10 +30,11 @@ describe('DeleteCommentUseCase', () => {
     const commentId = 'comment-1';
     const owner = 'user-1';
 
-    const mockThreadRepository = { verifyAvailableThread: jest.fn().mockResolvedValue() };
-    const mockCommentRepository = {
-      verifyCommentExists: jest.fn().mockResolvedValue({ id: commentId, thread_id: 'different-thread', owner }),
-    };
+    const mockThreadRepository = new ThreadRepository();
+    mockThreadRepository.verifyAvailableThread = jest.fn().mockResolvedValue();
+
+    const mockCommentRepository = new CommentRepository();
+    mockCommentRepository.verifyCommentExists = jest.fn().mockResolvedValue({ id: commentId, thread_id: 'different-thread', owner });
 
     const useCase = new (require('../DeleteCommentUseCase'))({ threadRepository: mockThreadRepository, commentRepository: mockCommentRepository });
     await expect(useCase.execute({ threadId, commentId, owner })).rejects.toThrow('komentar tidak ditemukan pada thread');

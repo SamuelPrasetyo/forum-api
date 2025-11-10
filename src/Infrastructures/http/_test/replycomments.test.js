@@ -37,11 +37,13 @@ describe('/threads/{threadId}/comments/{commentId}/replies', () => {
     const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'dicoding', password: 'secret' } });
     const { data: { accessToken } } = JSON.parse(login.payload);
 
-    // create thread directly in db (or via endpoint)
-    await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-DUMMY' });
+    // Get user id
+    const userIdRes = await pool.query({ text: 'SELECT id FROM users WHERE username=$1', values: ['dicoding'] });
+    const userId = userIdRes.rows[0].id;
 
-    // create comment directly in db (or via endpoint)
-    await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: 'user-DUMMY' });
+    // create thread and comment with actual user
+    await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: userId });
+    await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: userId });
 
     const response = await server.inject({
       method: 'POST',
@@ -60,8 +62,14 @@ describe('/threads/{threadId}/comments/{commentId}/replies', () => {
 
   it('should response 401 when access token is missing', async () => {
     const server = await createServer(container);
-    await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-DUMMY' });
-    await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: 'user-DUMMY' });
+
+    // Create user for foreign key constraint
+    await server.inject({ method: 'POST', url: '/users', payload: { username: 'testuser', password: 'secret', fullname: 'Test User' } });
+    const userIdRes = await pool.query({ text: 'SELECT id FROM users WHERE username=$1', values: ['testuser'] });
+    const userId = userIdRes.rows[0].id;
+
+    await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: userId });
+    await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: userId });
 
     const response = await server.inject({
       method: 'POST',
@@ -99,8 +107,13 @@ describe('/threads/{threadId}/comments/{commentId}/replies', () => {
     await server.inject({ method: 'POST', url: '/users', payload: { username: 'dicoding', password: 'secret', fullname: 'Dicoding Indonesia' } });
     const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'dicoding', password: 'secret' } });
     const { data: { accessToken } } = JSON.parse(login.payload);
-    await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-DUMMY' });
-    await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: 'user-DUMMY' });
+
+    // Get user id
+    const userIdRes = await pool.query({ text: 'SELECT id FROM users WHERE username=$1', values: ['dicoding'] });
+    const userId = userIdRes.rows[0].id;
+
+    await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: userId });
+    await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: userId });
 
     const response = await server.inject({
       method: 'POST',
@@ -203,9 +216,15 @@ describe('/threads/{threadId}/comments/{commentId}/replies', () => {
 
     it('should response 401 when access token is missing', async () => {
       const server = await createServer(container);
-      await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-DUMMY' });
-      await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: 'user-DUMMY' });
-      await ReplyCommentsTableTestHelper.addReplyComment({ id: 'reply-123', commentId: 'comment-123', owner: 'user-DUMMY' });
+
+      // Create user for foreign key constraint
+      await server.inject({ method: 'POST', url: '/users', payload: { username: 'testuser2', password: 'secret', fullname: 'Test User 2' } });
+      const userIdRes = await pool.query({ text: 'SELECT id FROM users WHERE username=$1', values: ['testuser2'] });
+      const userId = userIdRes.rows[0].id;
+
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: userId });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: userId });
+      await ReplyCommentsTableTestHelper.addReplyComment({ id: 'reply-123', commentId: 'comment-123', owner: userId });
 
       const response = await server.inject({
         method: 'DELETE',

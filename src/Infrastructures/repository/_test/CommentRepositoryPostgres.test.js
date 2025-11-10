@@ -26,7 +26,16 @@ describe('CommentRepositoryPostgres', () => {
     
     const added = await repo.addComment(payload);
 
+    // Assert return value
     expect(added).toStrictEqual({ id: 'comment-123', content: 'a comment', owner: 'user-comment-1' });
+
+    // Assert database persistence
+    const comments = await CommentsTableTestHelper.findCommentsById('comment-123');
+    expect(comments).toHaveLength(1);
+    expect(comments[0].id).toEqual('comment-123');
+    expect(comments[0].content).toEqual('a comment');
+    expect(comments[0].owner).toEqual('user-comment-1');
+    expect(comments[0].thread_id).toEqual('thread-comment-1');
   });
 
   describe('getCommentsByThreadId', () => {
@@ -47,12 +56,25 @@ describe('CommentRepositoryPostgres', () => {
 
       const repo = new CommentRepositoryPostgres(pool, () => 'x');
       const res = await repo.getCommentsByThreadId('thread-comment-2');
+
+      // Assert array length and structure
       expect(res).toHaveLength(2);
-      expect(res[0]).toHaveProperty('id');
-      expect(res[0]).toHaveProperty('username');
+
+      // Assert all properties for first comment
+      expect(res[0]).toHaveProperty('id', 'comment-a');
+      expect(res[0]).toHaveProperty('username', 'ux');
+      expect(res[0]).toHaveProperty('content', 'A');
       expect(res[0]).toHaveProperty('date');
-      expect(res[0]).toHaveProperty('content');
-      expect(res[0]).toHaveProperty('is_delete');
+      expect(res[0]).toHaveProperty('is_delete', false);
+      expect(res[0].date).toBeInstanceOf(Date);
+
+      // Assert all properties for second comment
+      expect(res[1]).toHaveProperty('id', 'comment-b');
+      expect(res[1]).toHaveProperty('username', 'uy');
+      expect(res[1]).toHaveProperty('content', 'B');
+      expect(res[1]).toHaveProperty('date');
+      expect(res[1]).toHaveProperty('is_delete', false);
+      expect(res[1].date).toBeInstanceOf(Date);
     });
   });
 
@@ -86,7 +108,8 @@ describe('CommentRepositoryPostgres', () => {
     it('verifyCommentOwner should throw COMMENT.NOT_FOUND when comment missing', async () => {
       await pool.query({ text: 'DELETE FROM comments WHERE id=$1', values: ['comment-missing'] });
       const repo = new CommentRepositoryPostgres(pool, () => 'x');
-      await expect(repo.verifyCommentOwner('comment-missing', 'user-any')).rejects.toThrow('COMMENT.NOT_FOUND');
+      await expect(repo.verifyCommentOwner('comment-missing', 'user-any'))
+        .rejects.toThrow(require('../../../Commons/exceptions/NotFoundError'));
     });
 
     it('verifyCommentOwner should pass when owner matches', async () => {

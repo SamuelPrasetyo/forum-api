@@ -1,4 +1,7 @@
 const AddReplyCommentUseCase = require('../AddReplyCommentUseCase');
+const ReplyCommentsRepository = require('../../../Domains/reply_comments/ReplyCommentsRepository');
+const CommentRepository = require('../../../Domains/comments/CommentRepository');
+const ThreadRepository = require('../../../Domains/threads/ThreadRepository');
 
 describe('AddReplyCommentUseCase', () => {
   it('should orchestrate add reply comment correctly', async () => {
@@ -10,21 +13,18 @@ describe('AddReplyCommentUseCase', () => {
       commentId: 'comment-123',
     };
 
-    const mockReplyCommentRepository = {
-      addReplyComment: jest.fn().mockResolvedValue({
-        id: 'reply-123',
-        content: useCasePayload.content,
-        owner: useCasePayload.owner,
-      }),
-    };
+    const mockReplyCommentRepository = new ReplyCommentsRepository();
+    mockReplyCommentRepository.addReplyComment = jest.fn().mockResolvedValue({
+      id: 'reply-123',
+      content: useCasePayload.content,
+      owner: useCasePayload.owner,
+    });
 
-    const mockCommentRepository = {
-      verifyCommentExists: jest.fn().mockResolvedValue(),
-    };
+    const mockCommentRepository = new CommentRepository();
+    mockCommentRepository.verifyCommentExists = jest.fn().mockResolvedValue();
 
-    const mockThreadRepository = {
-      verifyAvailableThread: jest.fn().mockResolvedValue(),
-    };
+    const mockThreadRepository = new ThreadRepository();
+    mockThreadRepository.verifyAvailableThread = jest.fn().mockResolvedValue();
 
     const addReplyCommentUseCase = new AddReplyCommentUseCase({
       replyCommentRepository: mockReplyCommentRepository,

@@ -40,8 +40,16 @@ describe('ReplyCommentRepositoryPostgres', () => {
       // Action
       const added = await repo.addReplyComment(payload);
 
-      // Assert
+      // Assert return value
       expect(added).toStrictEqual({ id: 'reply-123', content: 'a reply comment', owner: 'user-123' });
+
+      // Assert database persistence
+      const replies = await ReplyCommentsTableTestHelper.findReplyCommentsById('reply-123');
+      expect(replies).toHaveLength(1);
+      expect(replies[0].id).toEqual('reply-123');
+      expect(replies[0].content).toEqual('a reply comment');
+      expect(replies[0].owner).toEqual('user-123');
+      expect(replies[0].comment_id).toEqual('comment-123');
     });
   });
 
@@ -131,10 +139,20 @@ describe('ReplyCommentRepositoryPostgres', () => {
 
       // Assert
       expect(replies).toHaveLength(2);
+
+      // Assert all properties for first reply
       expect(replies[0].id).toEqual('reply-123');
       expect(replies[0].content).toEqual('reply 1');
       expect(replies[0].username).toEqual('dicoding');
+      expect(replies[0].date).toBeInstanceOf(Date);
+      expect(replies[0].is_delete).toBe(false);
+
+      // Assert all properties for second reply
       expect(replies[1].id).toEqual('reply-456');
+      expect(replies[1].content).toEqual('reply 2');
+      expect(replies[1].username).toEqual('dicoding');
+      expect(replies[1].date).toBeInstanceOf(Date);
+      expect(replies[1].is_delete).toBe(false);
     });
 
     it('should return empty array when no replies', async () => {
