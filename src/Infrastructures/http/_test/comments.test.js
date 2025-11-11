@@ -27,8 +27,13 @@ describe('/threads/{threadId}/comments endpoint', () => {
     // login
     const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'dicoding', password: 'secret' } });
     const { data: { accessToken } } = JSON.parse(login.payload);
+    
+    // Get actual user ID for foreign key constraint
+    const userIdRes = await pool.query({ text: 'SELECT id FROM users WHERE username=$1', values: ['dicoding'] });
+    const userId = userIdRes.rows[0].id;
+    
     // create thread directly in db (or via endpoint)
-    await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-DUMMY' });
+    await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: userId });
 
     const response = await server.inject({
       method: 'POST',
