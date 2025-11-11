@@ -41,7 +41,6 @@ class CommentRepositoryPostgres extends CommentRepository {
     if (!result.rowCount) {
       throw new NotFoundError('COMMENT.NOT_FOUND');
     }
-    return result.rows[0];
   }
 
   async verifyCommentOwner(commentId, ownerId) {
@@ -50,9 +49,6 @@ class CommentRepositoryPostgres extends CommentRepository {
       values: [commentId],
     };
     const result = await this._pool.query(query);
-    if (!result.rowCount) {
-      throw new NotFoundError('komentar tidak ditemukan');
-    }
     if (result.rows[0].owner !== ownerId) {
       throw new AuthorizationError('anda tidak berhak mengakses resource ini');
     }

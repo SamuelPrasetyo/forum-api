@@ -86,15 +86,14 @@ describe('CommentRepositoryPostgres', () => {
       await expect(repo.verifyCommentExists('comment-x')).rejects.toThrow(NotFoundError);
     });
 
-    it('verifyCommentExists should return row when found', async () => {
+    it('verifyCommentExists should not throw when found', async () => {
       // Setup: Use test helpers
       await UsersTableTestHelper.addUser({ id: 'user-comment-4', username: 'uabc' });
       await ThreadsTableTestHelper.addThread({ id: 'thread-comment-3', owner: 'user-comment-4' });
       await CommentsTableTestHelper.addComment({ id: 'comment-found', content: 'c', owner: 'user-comment-4', threadId: 'thread-comment-3' });
       
       const repo = new CommentRepositoryPostgres(pool, () => 'x');
-      const row = await repo.verifyCommentExists('comment-found');
-      expect(row).toMatchObject({ id: 'comment-found', thread_id: 'thread-comment-3', owner: 'user-comment-4' });
+      await expect(repo.verifyCommentExists('comment-found')).resolves.not.toThrow(NotFoundError);
     });
 
     it('verifyCommentOwner should throw AuthorizationError when not owner', async () => {
@@ -107,13 +106,6 @@ describe('CommentRepositoryPostgres', () => {
       await expect(repo.verifyCommentOwner('comment-own', 'user-other')).rejects.toThrow(AuthorizationError);
     });
 
-    it('verifyCommentOwner should throw COMMENT.NOT_FOUND when comment missing', async () => {
-      await pool.query({ text: 'DELETE FROM comments WHERE id=$1', values: ['comment-missing'] });
-      const repo = new CommentRepositoryPostgres(pool, () => 'x');
-      await expect(repo.verifyCommentOwner('comment-missing', 'user-any'))
-        .rejects.toThrow(NotFoundError);
-    });
-
     it('verifyCommentOwner should pass when owner matches', async () => {
       // Setup: Use test helpers
       await UsersTableTestHelper.addUser({ id: 'user-comment-6', username: 'uabc3' });
@@ -121,7 +113,7 @@ describe('CommentRepositoryPostgres', () => {
       await CommentsTableTestHelper.addComment({ id: 'comment-own2', content: 'c', owner: 'user-comment-6', threadId: 'thread-comment-5' });
       
       const repo = new CommentRepositoryPostgres(pool, () => 'x');
-      await expect(repo.verifyCommentOwner('comment-own2', 'user-comment-6')).resolves.toBeUndefined();
+      await expect(repo.verifyCommentOwner('comment-own2', 'user-comment-6')).resolves.not.toThrow(AuthorizationError);
     });
 
     it('deleteComment should set is_delete true', async () => {

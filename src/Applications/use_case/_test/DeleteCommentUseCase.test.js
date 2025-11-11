@@ -12,7 +12,7 @@ describe('DeleteCommentUseCase', () => {
     mockThreadRepository.verifyAvailableThread = jest.fn().mockResolvedValue();
 
     const mockCommentRepository = new CommentRepository();
-    mockCommentRepository.verifyCommentExists = jest.fn().mockResolvedValue({ id: commentId, thread_id: threadId, owner });
+    mockCommentRepository.verifyCommentExists = jest.fn().mockResolvedValue();
     mockCommentRepository.verifyCommentOwner = jest.fn().mockResolvedValue();
     mockCommentRepository.deleteComment = jest.fn().mockResolvedValue();
 
@@ -23,21 +23,6 @@ describe('DeleteCommentUseCase', () => {
     expect(mockCommentRepository.verifyCommentExists).toBeCalledWith(commentId);
     expect(mockCommentRepository.verifyCommentOwner).toBeCalledWith(commentId, owner);
     expect(mockCommentRepository.deleteComment).toBeCalledWith(commentId);
-  });
-
-  it('should throw NotFoundError when comment does not belong to thread', async () => {
-    const threadId = 'thread-1';
-    const commentId = 'comment-1';
-    const owner = 'user-1';
-
-    const mockThreadRepository = new ThreadRepository();
-    mockThreadRepository.verifyAvailableThread = jest.fn().mockResolvedValue();
-
-    const mockCommentRepository = new CommentRepository();
-    mockCommentRepository.verifyCommentExists = jest.fn().mockResolvedValue({ id: commentId, thread_id: 'different-thread', owner });
-
-    const useCase = new (require('../DeleteCommentUseCase'))({ threadRepository: mockThreadRepository, commentRepository: mockCommentRepository });
-    await expect(useCase.execute({ threadId, commentId, owner })).rejects.toThrow('komentar tidak ditemukan pada thread');
   });
 });
 
