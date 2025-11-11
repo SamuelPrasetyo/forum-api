@@ -33,9 +33,6 @@ describe('/threads/{threadId}/comments/{commentId}/replies', () => {
     
     // register user
     await server.inject({ method: 'POST', url: '/users', payload: { username: 'dicoding', password: 'secret', fullname: 'Dicoding Indonesia' } });
-    // login
-    const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'dicoding', password: 'secret' } });
-    const { data: { accessToken } } = JSON.parse(login.payload);
 
     // Get user id
     const userIdRes = await pool.query({ text: 'SELECT id FROM users WHERE username=$1', values: ['dicoding'] });
@@ -44,6 +41,10 @@ describe('/threads/{threadId}/comments/{commentId}/replies', () => {
     // create thread and comment with actual user
     await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: userId });
     await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: userId });
+
+    // login
+    const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'dicoding', password: 'secret' } });
+    const { data: { accessToken } } = JSON.parse(login.payload);
 
     const response = await server.inject({
       method: 'POST',
@@ -167,8 +168,6 @@ describe('/threads/{threadId}/comments/{commentId}/replies', () => {
       // Register users
       await server.inject({ method: 'POST', url: '/users', payload: { username: 'owner', password: 'secret', fullname: 'Owner' } });
       await server.inject({ method: 'POST', url: '/users', payload: { username: 'other', password: 'secret', fullname: 'Other' } });
-      const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'other', password: 'secret' } });
-      const { data: { accessToken } } = JSON.parse(login.payload);
 
       const ownerIdRes = await pool.query({ text: 'SELECT id FROM users WHERE username=$1', values: ['owner'] });
       const ownerId = ownerIdRes.rows[0].id;
@@ -176,6 +175,9 @@ describe('/threads/{threadId}/comments/{commentId}/replies', () => {
       await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: ownerId });
       await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: ownerId });
       await ReplyCommentsTableTestHelper.addReplyComment({ id: 'reply-123', commentId: 'comment-123', owner: ownerId });
+
+      const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'other', password: 'secret' } });
+      const { data: { accessToken } } = JSON.parse(login.payload);
 
       const response = await server.inject({
         method: 'DELETE',
@@ -193,14 +195,15 @@ describe('/threads/{threadId}/comments/{commentId}/replies', () => {
       const server = await createServer(container);
 
       await server.inject({ method: 'POST', url: '/users', payload: { username: 'owner', password: 'secret', fullname: 'Owner' } });
-      const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'owner', password: 'secret' } });
-      const { data: { accessToken } } = JSON.parse(login.payload);
 
       const ownerIdRes = await pool.query({ text: 'SELECT id FROM users WHERE username=$1', values: ['owner'] });
       const ownerId = ownerIdRes.rows[0].id;
 
       await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: ownerId });
       await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: ownerId });
+
+      const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'owner', password: 'secret' } });
+      const { data: { accessToken } } = JSON.parse(login.payload);
 
       const response = await server.inject({
         method: 'DELETE',

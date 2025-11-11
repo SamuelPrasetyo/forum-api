@@ -21,14 +21,15 @@ describe('DELETE /threads/{threadId}/comments/{commentId}', () => {
     // create two users; commenter is user-1
     await server.inject({ method: 'POST', url: '/users', payload: { username: 'owner', password: 'secret', fullname: 'Owner' } });
     await server.inject({ method: 'POST', url: '/users', payload: { username: 'other', password: 'secret', fullname: 'Other' } });
-    const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'owner', password: 'secret' } });
-    const { data: { accessToken } } = JSON.parse(login.payload);
 
     // fetch user id from DB
     const ownerIdRes = await pool.query({ text: 'SELECT id FROM users WHERE username=$1', values: ['owner'] });
     const ownerId = ownerIdRes.rows[0].id;
     await ThreadsTableTestHelper.addThread({ id: 'thread-1', owner: ownerId });
     await CommentsTableTestHelper.addComment({ id: 'comment-1', threadId: 'thread-1', owner: ownerId });
+    
+    const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'owner', password: 'secret' } });
+    const { data: { accessToken } } = JSON.parse(login.payload);
 
     const res = await server.inject({ method: 'DELETE', url: '/threads/thread-1/comments/comment-1', headers: { Authorization: `Bearer ${accessToken}` } });
     const json = JSON.parse(res.payload);
@@ -40,14 +41,16 @@ describe('DELETE /threads/{threadId}/comments/{commentId}', () => {
     const server = await createServer(container);
     await server.inject({ method: 'POST', url: '/users', payload: { username: 'owner', password: 'secret', fullname: 'Owner' } });
     await server.inject({ method: 'POST', url: '/users', payload: { username: 'other', password: 'secret', fullname: 'Other' } });
-    const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'other', password: 'secret' } });
-    const { data: { accessToken } } = JSON.parse(login.payload);
+    
     const ownerIdRes = await pool.query({ text: 'SELECT id FROM users WHERE username=$1', values: ['owner'] });
     const otherIdRes = await pool.query({ text: 'SELECT id FROM users WHERE username=$1', values: ['other'] });
     const ownerId = ownerIdRes.rows[0].id;
     const otherId = otherIdRes.rows[0].id; // unused but kept to show retrieval
     await ThreadsTableTestHelper.addThread({ id: 'thread-1', owner: ownerId });
     await CommentsTableTestHelper.addComment({ id: 'comment-1', threadId: 'thread-1', owner: ownerId });
+
+    const login = await server.inject({ method: 'POST', url: '/authentications', payload: { username: 'other', password: 'secret' } });
+    const { data: { accessToken } } = JSON.parse(login.payload);
 
     const res = await server.inject({ method: 'DELETE', url: '/threads/thread-1/comments/comment-1', headers: { Authorization: `Bearer ${accessToken}` } });
     const json = JSON.parse(res.payload);
