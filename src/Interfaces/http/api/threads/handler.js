@@ -9,26 +9,26 @@ class ThreadsHandler {
     autoBind(this);
   }
 
-  async postThreadHandler(request, h) {
-    // Get owner from authenticated credentials
-    const { id: owner } = request.auth.credentials;
+  // async postThreadHandler(request, h) {
+  //   // Get owner from authenticated credentials
+  //   const { id: owner } = request.auth.credentials;
 
-    // Execute use case
-    const addThreadUseCase = this._container.getInstance(AddThreadUseCase.name);
-    const addedThread = await addThreadUseCase.execute({
-      ...request.payload,
-      owner,
-    });
+  //   // Execute use case
+  //   const addThreadUseCase = this._container.getInstance(AddThreadUseCase.name);
+  //   const addedThread = await addThreadUseCase.execute({
+  //     ...request.payload,
+  //     owner,
+  //   });
 
-    const response = h.response({
-      status: 'success',
-      data: {
-        addedThread,
-      },
-    });
-    response.code(201);
-    return response;
-  }
+  //   const response = h.response({
+  //     status: 'success',
+  //     data: {
+  //       addedThread,
+  //     },
+  //   });
+  //   response.code(201);
+  //   return response;
+  // }
 
   async getThreadDetailHandler(request) {
     const { threadId } = request.params;
