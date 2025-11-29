@@ -11,6 +11,8 @@ class GetThreadDetailUseCase {
 
     const mappedComments = await Promise.all(comments.map(async (c) => {
       const replies = await this._replyCommentRepository.getRepliesByCommentId(c.id);
+      const likeCount = await this._commentRepository.getLikeCountByCommentId(c.id);
+      
       const mappedReplies = replies.map((r) => ({
         id: r.id,
         content: r.is_delete ? '**balasan telah dihapus**' : r.content,
@@ -23,6 +25,7 @@ class GetThreadDetailUseCase {
         username: c.username,
         date: c.date,
         content: c.is_delete ? '**komentar telah dihapus**' : c.content,
+        likeCount,
         replies: mappedReplies,
       };
     }));
