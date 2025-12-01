@@ -10,16 +10,31 @@ jobs:
     runs-on: ubuntu-latest
  
     steps:
-    - name: SSH and deploy app
-      uses: appleboy/ssh-action@master
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
       with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
-        key: ${{ secrets.SSH_KEY }}
-        port: ${{ secrets.SSH_PORT }}
-        script: |
-          cd ~/forum-api
-          git pull origin main
-          npm install
-          npm run migrate up
-          pm2 restart forum-api
+        node-version: '22.x'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Install Railway CLI
+      run: npm install -g @railway/cli
+
+    - name: Deploy to Railway
+      run: railway up --service ${{ secrets.RAILWAY_SERVICE_NAME }}
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+    - name: Run database migrations
+      run: railway run npm run migrate up
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+    - name: Restart Railway service
+      run: railway run npm start
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
