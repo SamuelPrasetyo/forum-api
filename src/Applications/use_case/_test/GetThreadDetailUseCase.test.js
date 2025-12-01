@@ -21,6 +21,9 @@ describe('GetThreadDetailUseCase', () => {
       { id: 'comment-1', username: 'john', date: new Date('2021-08-08T07:22:33.555Z'), content: 'hi', is_delete: false },
       { id: 'comment-2', username: 'doe', date: new Date('2021-08-08T07:26:21.338Z'), content: 'bye', is_delete: true },
     ]);
+    mockCommentRepository.getLikeCountByCommentId = jest.fn()
+      .mockResolvedValueOnce(2)
+      .mockResolvedValueOnce(0);
 
     const mockReplyCommentRepository = new ReplyCommentsRepository();
     mockReplyCommentRepository.getRepliesByCommentId = jest.fn()
@@ -39,6 +42,8 @@ describe('GetThreadDetailUseCase', () => {
 
     expect(mockThreadRepository.getThreadById).toBeCalledWith(threadId);
     expect(mockCommentRepository.getCommentsByThreadId).toBeCalledWith(threadId);
+    expect(mockCommentRepository.getLikeCountByCommentId).toBeCalledWith('comment-1');
+    expect(mockCommentRepository.getLikeCountByCommentId).toBeCalledWith('comment-2');
     expect(mockReplyCommentRepository.getRepliesByCommentId).toBeCalledWith('comment-1');
     expect(mockReplyCommentRepository.getRepliesByCommentId).toBeCalledWith('comment-2');
     expect(result).toMatchObject({
@@ -51,6 +56,7 @@ describe('GetThreadDetailUseCase', () => {
           id: 'comment-1', 
           username: 'john', 
           content: 'hi',
+          likeCount: 2,
           replies: [
             { id: 'reply-1', content: 'reply 1', username: 'johndoe' },
             { id: 'reply-2', content: '**balasan telah dihapus**', username: 'dicoding' },
@@ -60,6 +66,7 @@ describe('GetThreadDetailUseCase', () => {
           id: 'comment-2', 
           username: 'doe', 
           content: '**komentar telah dihapus**',
+          likeCount: 0,
           replies: [],
         },
       ],
