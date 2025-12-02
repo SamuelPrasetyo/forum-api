@@ -22,7 +22,7 @@ const createServer = async (container) => {
       plugin: HapiRateLimit,
       options: {
         enabled: true,
-        userLimit: 90,
+        userLimit: 10,
         userCache: {
           expiresIn: 60000, // 1 minute
         },
