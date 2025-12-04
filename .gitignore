@@ -1,10 +1,6 @@
 node_modules
-package-lock.json
 .idea
 config/database/test.json
 coverage
 .env
 forum-api-webserver.pem
-RAILWAY_DEPLOYMENT.md
-.github/SETUP_SECRETS.md
-.github/workflows/cd copy.yml
