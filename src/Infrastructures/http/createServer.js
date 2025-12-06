@@ -1,5 +1,4 @@
 const Hapi = require('@hapi/hapi');
-const HapiRateLimit = require('hapi-rate-limit');
 const ClientError = require('../../Commons/exceptions/ClientError');
 const DomainErrorTranslator = require('../../Commons/exceptions/DomainErrorTranslator');
 const users = require('../../Interfaces/http/api/users');
@@ -15,22 +14,6 @@ const createServer = async (container) => {
     host: process.env.HOST,
     port: process.env.PORT,
   });
-
-  // Register rate limiting plugin only if not in test environment
-  if (process.env.NODE_ENV !== 'test') {
-    await server.register({
-      plugin: HapiRateLimit,
-      options: {
-        enabled: true,
-        userLimit: 90,
-        userCache: {
-          expiresIn: 60000, // 1 minute
-        },
-        pathLimit: false,
-        headers: false,
-      },
-    });
-  }
 
   // Register JWT authentication strategy
   const authenticationTokenManager = container.getInstance(AuthenticationTokenManager.name);
